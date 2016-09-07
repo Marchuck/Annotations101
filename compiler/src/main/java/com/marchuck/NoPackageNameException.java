@@ -1,4 +1,4 @@
-package com.brianattwell;
+package com.marchuck;
 
 import javax.lang.model.element.TypeElement;
 

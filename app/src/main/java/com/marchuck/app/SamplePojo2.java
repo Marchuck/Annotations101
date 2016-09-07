@@ -1,8 +1,8 @@
-package com.brianattwell.app;
+package com.marchuck.app;
 
-import com.brianattwell.StaticStringUtil;
+import com.marchuck.WhenClicked;
 
-@StaticStringUtil
+@WhenClicked
 public class SamplePojo2 {
     public String cat;
     public String dog;
@@ -13,6 +13,7 @@ public class SamplePojo2 {
     }
     @Override
     public String toString() {
-        return StringUtil.createString(this);
+        return null;
+//        return StringUtil.createString(this);
     }
 }

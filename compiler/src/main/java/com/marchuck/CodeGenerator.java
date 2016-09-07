@@ -1,4 +1,4 @@
-package com.brianattwell;
+package com.marchuck;
 
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
