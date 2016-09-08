@@ -6,9 +6,7 @@ import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +19,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -29,12 +26,13 @@ import javax.tools.Diagnostic;
 
 import static com.marchuck.Utils.getPackageName;
 import static com.squareup.javapoet.JavaFile.builder;
+import static java.util.Collections.singleton;
 import static javax.lang.model.SourceVersion.latestSupported;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 @SupportedAnnotationTypes("*")
 @AutoService(Processor.class)
-public class WhenClickedProcessor extends AbstractProcessor {
+public class RealmBeanProcessor extends AbstractProcessor {
 
     private static final String ANNOTATION = "@" + WhenClicked.class.getSimpleName();
 
@@ -49,8 +47,8 @@ public class WhenClickedProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-//        return singleton(WhenClicked.class.getCanonicalName());
-        return new HashSet<>(Arrays.asList(WhenClicked.class.getCanonicalName(), Injectable.class.getCanonicalName()));
+        return singleton(RealmBean.class.getCanonicalName());
+//        return new HashSet<>(Arrays.asList(WhenClicked.class.getCanonicalName(), Injectable.class.getCanonicalName()));
     }
 
     @Override
@@ -60,36 +58,16 @@ public class WhenClickedProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ArrayList<com.marchuck.AnnotatedClass> annotatedClasses = new ArrayList<>();
+        List<TypeElement> annotatedClasses = new ArrayList<>();
         ArrayList<ExecutableElement> clickableMethods = new ArrayList<>();
 
-        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(Injectable.class)) {
+        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(RealmBean.class)) {
             TypeElement annotatedClass = (TypeElement) annotatedElement;
-            try {
-                annotatedClasses.add(buildAnnotatedClass(annotatedClass));
-            } catch (com.marchuck.NoPackageNameException | IOException e) {
-                e.printStackTrace();
-            }
-//            messager.printMessage(Diagnostic.Kind.NOTE, "processing next injectable " + annotatedClass.getSimpleName().toString()
-//                            + "\ngetEnclosedElements\n" + printCollection(annotatedClass.getEnclosedElements())
-//                            + "\n" + (annotatedClass.getEnclosingElement())
-//                    , annotatedClass);
+            annotatedClasses.add(annotatedClass);
         }
-        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(WhenClicked.class)) {
-            // Our annotation is defined with @Target(value=TYPE). Therefore, we can assume that
-            // this annotatedElement is a TypeElement.
-            //TypeElement annotatedClass = (TypeElement) annotatedElement;
-            if (annotatedElement.getKind() == ElementKind.METHOD) {
-                ExecutableElement nextMethod = (ExecutableElement) annotatedElement;
-                clickableMethods.add(nextMethod);
 
-                messager.printMessage(Diagnostic.Kind.NOTE, "processing next injectable " + nextMethod.getSimpleName().toString()
-                                + "\ngetEnclosedElements\n" + printCollection(nextMethod.getEnclosedElements())
-                                + "\n" + (nextMethod.getTypeParameters()), nextMethod);
-            }
-        }
         try {
-            generate(annotatedClasses, clickableMethods);
+            generate(annotatedClasses);
         } catch (Exception e) {
             messager.printMessage(ERROR, "Couldn't generate class " + e.getMessage());
         }
@@ -127,20 +105,25 @@ public class WhenClickedProcessor extends AbstractProcessor {
         return new com.marchuck.AnnotatedClass(annotatedClass, variableNames);
     }
 
-    private void generate(List<com.marchuck.AnnotatedClass> annos, ArrayList<ExecutableElement> annotatedMethods)
+    private void generate(List<TypeElement> annos)
             throws com.marchuck.NoPackageNameException, IOException {
         if (annos.size() == 0) {
-            messager.printMessage(Diagnostic.Kind.NOTE, "ANNOS SIZE ZERO FCUK");
+            messager.printMessage(Diagnostic.Kind.NOTE, "NO ANNOTATED ELEMENTS");
         } else {
-            messager.printMessage(Diagnostic.Kind.NOTE, "ANNOS SIZE  == " + annos.size());
-            String packageName = getPackageName(processingEnv.getElementUtils(), annos.get(0).typeElement);
-            TypeSpec generatedClass = com.marchuck.MyCodeGenerator.generateClass(messager, annos, annotatedMethods);
-            if (generatedClass == null) return;
-            JavaFile javaFile = builder(packageName, generatedClass).build();
-
-            javaFile.writeTo(processingEnv.getFiler());
+            messager.printMessage(Diagnostic.Kind.NOTE, "ANNOTATED CLASSES SIZE  == " + annos.size());
+            String packageName = getPackageName(processingEnv.getElementUtils(), annos.get(0));
+            for (TypeElement nextClassAnnotated : annos) {
+                TypeSpec generatedClass = MyCodeGenerator.generateClass(messager, nextClassAnnotated);
+                JavaFile javaFile = builder(packageName, generatedClass).build();
+                javaFile.writeTo(processingEnv.getFiler());
+            }
+            //todo:
+//            TypeSpec generatedClass = MyCodeGenerator.generateGetter(messager, annos);
+//            JavaFile javaFile = builder(packageName, generatedClass).build();
+//            javaFile.writeTo(processingEnv.getFiler());
         }
     }
+
     public static <T> String printCollection(Collection<T> a) {
         if (a == null)
             return "null";

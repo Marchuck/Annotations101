@@ -6,7 +6,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.brianattwell.app"
+        applicationId "com.marchuck.app"
         minSdkVersion 22
         targetSdkVersion 22
         versionCode 1
@@ -22,6 +22,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+
+    compile 'io.realm:realm-android:0.87.1'
+
 }
 
 dependencies {
