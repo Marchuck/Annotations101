@@ -1,8 +1,8 @@
 package com.marchuck.app;
 
+import com.marchuck.RealmBean;
 import com.marchuck.WhenClicked;
-
-@WhenClicked
+ 
 public class SamplePojo {
 
     public SamplePojo(String fieldA, String fieldB, int fieldC, SamplePojo2 fieldD) {

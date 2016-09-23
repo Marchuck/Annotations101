@@ -11,7 +11,6 @@ import javax.annotation.processing.Messager;
 import javax.lang.model.element.ExecutableElement;
 import javax.tools.Diagnostic;
 
-import static com.squareup.javapoet.ClassName.get;
 import static com.squareup.javapoet.MethodSpec.methodBuilder;
 import static com.squareup.javapoet.TypeName.BOOLEAN;
 import static com.squareup.javapoet.TypeSpec.classBuilder;
@@ -21,7 +20,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 
 final class MyCodeGenerator {
 
-    private static final String CLASS_NAME = "Injector";
+    private static final String CLASS_NAME = "RealmConverter";
 
     public static TypeSpec generateClass(Messager messeger, List<AnnotatedClass> classes, ArrayList<ExecutableElement> executableElements) {
 

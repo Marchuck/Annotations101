@@ -34,7 +34,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
 
 @SupportedAnnotationTypes("*")
 @AutoService(Processor.class)
-public class WhenClickedProcessor extends AbstractProcessor {
+public class WhenClickedProcessorOrigin extends AbstractProcessor {
 
     private static final String ANNOTATION = "@" + WhenClicked.class.getSimpleName();
 
@@ -44,13 +44,13 @@ public class WhenClickedProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         messager = processingEnv.getMessager();
-
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
 //        return singleton(WhenClicked.class.getCanonicalName());
-        return new HashSet<>(Arrays.asList(WhenClicked.class.getCanonicalName(), Injectable.class.getCanonicalName()));
+        return new HashSet<>();
+//        return new HashSet<>(Arrays.asList(WhenClicked.class.getCanonicalName(), Injectable.class.getCanonicalName()));
     }
 
     @Override
@@ -60,14 +60,14 @@ public class WhenClickedProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ArrayList<com.marchuck.AnnotatedClass> annotatedClasses = new ArrayList<>();
+        ArrayList<AnnotatedClass> annotatedClasses = new ArrayList<>();
         ArrayList<ExecutableElement> clickableMethods = new ArrayList<>();
 
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(Injectable.class)) {
             TypeElement annotatedClass = (TypeElement) annotatedElement;
             try {
                 annotatedClasses.add(buildAnnotatedClass(annotatedClass));
-            } catch (com.marchuck.NoPackageNameException | IOException e) {
+            } catch (NoPackageNameException | IOException e) {
                 e.printStackTrace();
             }
 //            messager.printMessage(Diagnostic.Kind.NOTE, "processing next injectable " + annotatedClass.getSimpleName().toString()
@@ -84,8 +84,8 @@ public class WhenClickedProcessor extends AbstractProcessor {
                 clickableMethods.add(nextMethod);
 
                 messager.printMessage(Diagnostic.Kind.NOTE, "processing next injectable " + nextMethod.getSimpleName().toString()
-                                + "\ngetEnclosedElements\n" + printCollection(nextMethod.getEnclosedElements())
-                                + "\n" + (nextMethod.getTypeParameters()), nextMethod);
+                        + "\ngetEnclosedElements\n" + printCollection(nextMethod.getEnclosedElements())
+                        + "\n" + (nextMethod.getTypeParameters()), nextMethod);
             }
         }
         try {
@@ -114,8 +114,8 @@ public class WhenClickedProcessor extends AbstractProcessor {
         return true;
     }
 
-    private com.marchuck.AnnotatedClass buildAnnotatedClass(TypeElement annotatedClass)
-            throws com.marchuck.NoPackageNameException, IOException {
+    private AnnotatedClass buildAnnotatedClass(TypeElement annotatedClass)
+            throws NoPackageNameException, IOException {
         ArrayList<String> variableNames = new ArrayList<>();
         for (Element element : annotatedClass.getEnclosedElements()) {
             if (!(element instanceof VariableElement)) {
@@ -124,23 +124,24 @@ public class WhenClickedProcessor extends AbstractProcessor {
             VariableElement variableElement = (VariableElement) element;
             variableNames.add(variableElement.getSimpleName().toString());
         }
-        return new com.marchuck.AnnotatedClass(annotatedClass, variableNames);
+        return new AnnotatedClass(annotatedClass, variableNames);
     }
 
-    private void generate(List<com.marchuck.AnnotatedClass> annos, ArrayList<ExecutableElement> annotatedMethods)
-            throws com.marchuck.NoPackageNameException, IOException {
+    private void generate(List<AnnotatedClass> annos, ArrayList<ExecutableElement> annotatedMethods)
+            throws NoPackageNameException, IOException {
         if (annos.size() == 0) {
-            messager.printMessage(Diagnostic.Kind.NOTE, "ANNOS SIZE ZERO FCUK");
+            messager.printMessage(Diagnostic.Kind.NOTE, "WhenClicked processing end");
         } else {
-            messager.printMessage(Diagnostic.Kind.NOTE, "ANNOS SIZE  == " + annos.size());
+            messager.printMessage(Diagnostic.Kind.NOTE, "WhenClicked annotations size  == " + annos.size());
             String packageName = getPackageName(processingEnv.getElementUtils(), annos.get(0).typeElement);
-            TypeSpec generatedClass = com.marchuck.MyCodeGenerator.generateClass(messager, annos, annotatedMethods);
+            TypeSpec generatedClass = MyCodeGenerator.generateClass(messager, annos, annotatedMethods);
             if (generatedClass == null) return;
             JavaFile javaFile = builder(packageName, generatedClass).build();
 
             javaFile.writeTo(processingEnv.getFiler());
         }
     }
+
     public static <T> String printCollection(Collection<T> a) {
         if (a == null)
             return "null";

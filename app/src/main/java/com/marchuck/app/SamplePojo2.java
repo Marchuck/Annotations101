@@ -1,8 +1,8 @@
 package com.marchuck.app;
 
+import com.marchuck.RealmBean;
 import com.marchuck.WhenClicked;
 
-@WhenClicked
 public class SamplePojo2 {
     public String cat;
     public String dog;

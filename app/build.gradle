@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
-
+apply plugin: 'realm-android'
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.brianattwell.app"
+        applicationId "com.marchuck.app"
         minSdkVersion 22
         targetSdkVersion 22
         versionCode 1
@@ -26,5 +26,5 @@ dependencies {
 
 dependencies {
     compile project(':api')
-    apt project(':compiler')
+    compile project(':compiler')
 }
